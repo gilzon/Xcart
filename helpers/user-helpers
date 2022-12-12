@@ -3,6 +3,8 @@ var db = require('../config/connection')
 var collection = require('../config/collections')
 const bcrypt = require('bcrypt')
 
+
+
 module.exports = {
     doSignup: (userData) => {
 
@@ -12,7 +14,7 @@ module.exports = {
             // console.log(userData.password);
             db.get().collection(collection.USER_COLLECTION).insertOne(userData).then((data) => {
                 userData._id = data.insertedId
-                console.log(userData);
+                // console.log(userData);
                 resolve(userData)
             });
         })
@@ -27,8 +29,8 @@ module.exports = {
             let user = await db.get().collection(collection.USER_COLLECTION).findOne({ email: userData.email })
             if (user) {
                 bcrypt.compare(userData.password, user.password).then((status) => {
-                    console.log(user.password)
-                    console.log(userData.password)
+                    // console.log(user.password)
+                    // console.log(userData.password)
 
                     if (status) {
                         console.log("login Success");
@@ -44,6 +46,60 @@ module.exports = {
                 console.log("Login failed")
                 resolve({ status: false })
             }
+        })
+    },
+    addToCart: (proId, userId) => {
+        console.log(proId, userId)
+        return new Promise(async (resolve, reject) => {
+            let userCart = await db.get().collection(collection.CART_COLLECTON).findOne({ user: ObjectId(userId) })
+            if (userCart) {
+                db.get().collection(collection.CART_COLLECTON)
+                    .updateOne({ user: ObjectId(userId) },
+                        {
+                            $push: { products: ObjectId(proId) }
+                        }
+                    ).then((response) => {
+                        resolve()
+                    })
+            } else {
+                let cartObj = {
+                    user: ObjectId(userId),
+                    products: [ObjectId(proId)]
+                }
+                db.get().collection(collection.CART_COLLECTON).insertOne(cartObj).then((response) => {
+                    resolve()
+                })
+            }
+        })
+
+    },
+    getCartProducts: (userId) => {
+        return new Promise(async(resolve, reject) => {
+            let cartItems = await db.get().collection(collection.CART_COLLECTON).aggregate([
+                {
+                    $match: { user: ObjectId(userId) }
+
+                },
+
+                {
+                    $lookup: {
+                        from: collection.PRODUCT_COLLECTION,
+                        let: { prodList: '$products' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $in: ['$_id', '$$prodList']
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'cartItems'
+                    }
+                }
+            ]).toArray()
+            resolve(cartItems[0],cartItems)
+           
         })
     }
 }

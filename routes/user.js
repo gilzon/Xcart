@@ -5,10 +5,10 @@ var router = express.Router();
 const productHelpers = require('../helpers/product-helpers');
 const userHelpers = require('../helpers/user-helpers');
 
-const verifyLogin=(req,res,next)=>{
-  if(req.session.loggedIn){
+const verifyLogin = (req, res, next) => {
+  if (req.session.loggedIn) {
     next()
-  }else{
+  } else {
     res.redirect('/login')
   }
 }
@@ -17,11 +17,11 @@ const verifyLogin=(req,res,next)=>{
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
-let user=req.session.user
-console.log(user);
+  let user = req.session.user
+  // console.log(user);
   productHelpers.getAllProducts().then((products) => {
-    
-    res.render('user/view-products', { products,user });
+
+    res.render('user/view-products', { products, user });
 
   })
 
@@ -29,11 +29,11 @@ console.log(user);
 
 
 router.get('/login', (req, res) => {
-  if(req.session.loggedIn){
+  if (req.session.loggedIn) {
     res.redirect('/')
-  }else{
-  res.render('user/login',{"logginErr":req.session.loginErr})
-  req.session.logginErr=false, { title: 'LOGIN' }
+  } else {
+    res.render('user/login', { "logginErr": req.session.loginErr })
+    req.session.logginErr = false, { title: 'LOGIN' }
   }
 });
 
@@ -43,7 +43,12 @@ router.get('/signup', (req, res) => {
 });
 
 router.post('/signup', (req, res) => {
-  userHelpers.doSignup(req.body)
+  userHelpers.doSignup(req.body).then((response) => {
+    console.log(response);
+    req.session.loggedIn = true
+    req.session.user = response
+    res.redirect('/')
+  })
 })
 
 router.post('/login', (req, res) => {
@@ -54,21 +59,28 @@ router.post('/login', (req, res) => {
       res.redirect('/')
 
     } else {
-      req.session.loginErr="Invalid Username or Password"
+      req.session.loginErr = "Invalid Username or Password"
       res.redirect('/login')
     }
   })
 })
 
 
-router.get('/logout',(req,res)=>{
+router.get('/logout', (req, res) => {
   req.session.destroy()
   res.redirect('/login')
 })
-router.get('/cart',verifyLogin,(req,res)=>{
+router.get('/cart', verifyLogin, async (req, res) => {
+  let product = await userHelpers.getCartProducts(req.session.user._id)
+  console.log(product)
   res.render('user/cart')
+
 })
 
-
+router.get('/add-to-cart/:id', verifyLogin, (req, res) => {
+  userHelpers.addToCart(req.params.id, req.session.user._id).then(() => {
+    res.redirect('/')
+  })
+})
 
 module.exports = router;
