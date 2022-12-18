@@ -14,3 +14,5 @@ function addToCart(proId) {
         }
     })
 }
+
+
