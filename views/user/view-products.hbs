@@ -6,12 +6,13 @@
                 {{#each products}}
                 <div class="col-md-3 p-5">
                     <div class="card" style="width: 18rem; height:25rem;">
-                        <img src="/product-images/{{this._id}}.jpg" class="card-img-top" alt="..."
-                        style="height:22rem;">
+                        <img src="/product-images/{{this._id}}.jpg" class="card-img-top "   alt="..."
+                        style="height:20rem;">
                         <div class="card-body">
                             <h5 class="card-title">{{this.Name}}</h5>
-                            <p class="card-text">{{this.Description}}</p>
-                            
+                             <p class="card-text">{{this.Description}}</p>
+                            <p class="card-text">	₹ {{this.Price}}</p>
+                           
                             <button onclick="addToCart('{{this._id}}')" class="btn btn-primary">Add to Cart</button>
                         </div>
                     </div>
