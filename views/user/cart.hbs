@@ -20,10 +20,11 @@
           <td>{{this.product.Name}}</td>
           <td>	₹{{this.product.Price}}</td>
           <td>
+            
             <button   class= "btn btn-primary cart-item-count mr-3 "
-              onclick="changeQuantity('{{this._id}}','{{this.product._id}}',-1)">-</button>
+              onclick="changeQuantity('{{this._id}}','{{this.product._id}}','{{../user}}',-1)">-</button>
               <span id="{{this.product._id}}"> {{this.quantity}}</span> 
-               <button class="btn btn-primary cart-item-count ml-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}',1)">+</button>
+               <button class="btn btn-primary cart-item-count ml-3" onclick="changeQuantity('{{this._id}}','{{this.product._id}}','{{../user}}',1)">+</button>
           </td>
           <td>
             <a href="/cart/remove-product/{{this._id}}" class="btn btn-danger"  onclick="return confirm('remove the product{{this.name}}?')">Remove</a>
@@ -36,7 +37,7 @@
       </tbody>
     </table>
     <a href="/place-order" class="float-right btn btn-success" style=" float: right;    margin-right: 110px;">Place order</a>
-    <h3 class="float-right " <h3 class="float-right " style=" float: right; margin-right: 350px; margin-top: 10; margin-top: 4px;font-size: x-large;">{{total}}</h3>
+    <h3 class="float-right "  style=" float: right; margin-right: 350px; margin-top: 10; margin-top: 4px;font-size: x-large;">₹<span id="total">{{totalValue}}</span></h3>
    
    
 
@@ -45,12 +46,14 @@
 </section>
 
 <script>
-  function changeQuantity(cartId, proId, count) {
+  function changeQuantity(cartId, proId,userId ,count) {
     let quantity=parseInt(document.getElementById(proId).innerHTML)
     count=parseInt(count)
+    console.log(userId)
     $.ajax({
       url: '/change-product-quantity',
       data: {
+        user:userId,
         cart: cartId,
         product: proId,
         count: count,
@@ -62,7 +65,9 @@
            alert("product removed from cart") 
            location.reload();
         }else{
+          
           document.getElementById(proId).innerHTML=quantity+count
+          document.getElementById('total').innerHTML=response.total
         }
        
        
